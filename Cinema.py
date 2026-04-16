@@ -1,8 +1,25 @@
+# commit 6
+
+import tkinter as tk
+
 ROWS = 5
 SEATS = 8
 
-hall = [[0 for _ in range(SEATS)] for _ in range(ROWS)]
+hall = [[0]*SEATS for _ in range(ROWS)]
 
+root = tk.Tk()
+
+buttons = []
+
+for i in range(ROWS):
+    row = []
+    for j in range(SEATS):
+        btn = tk.Button(root, text="O", width=4)
+        btn.grid(row=i, column=j)
+        row.append(btn)
+    buttons.append(row)
+
+root.mainloop()
 total_revenue = 0
 tickets_sold = 0
 
