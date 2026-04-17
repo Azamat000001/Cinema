@@ -7,6 +7,7 @@ ROWS = 5
 SEATS = 8
 FILE = "hall.json"
 
+# ===== LOAD / SAVE =====
 def load_data():
     if os.path.exists(FILE):
         with open(FILE, "r") as f:
@@ -23,18 +24,24 @@ selected = []
 total_revenue = 0
 total_tickets_sold = 0
 
+
+# ===== PRICE =====
 def get_price(row):
     if row == 0:
-        return 15
+        return 15  # VIP
     elif row <= 2:
-        return 12
+        return 12  # Middle
     else:
-        return 8
+        return 8   # Budget
 
+
+# ===== UPDATE INFO =====
 def update_info():
     total = sum(get_price(r) for r, s in selected)
     info_label.config(text=f"Selected: {len(selected)} | Total: ${total:.2f}")
 
+
+# ===== CLICK =====
 def toggle_seat(r, s):
     if hall[r][s] == 1:
         messagebox.showwarning("Error", "Seat already occupied!")
@@ -51,6 +58,8 @@ def toggle_seat(r, s):
 
     update_info()
 
+
+# ===== BOOK =====
 def book_seats():
     global total_revenue, total_tickets_sold
 
@@ -80,11 +89,13 @@ def book_seats():
     total_revenue += final
     total_tickets_sold += len(selected)
 
+    messagebox.showinfo("Success", f"Booked!\nTotal: ${final:.2f}")
+
     selected.clear()
     update_info()
 
-    messagebox.showinfo("Success", f"Booked!\nTotal: ${final:.2f}")
 
+# ===== RESET =====
 def reset_selection():
     for r, s in selected:
         if hall[r][s] == 0:
@@ -92,6 +103,8 @@ def reset_selection():
     selected.clear()
     update_info()
 
+
+# ===== CASHIER =====
 def show_stats():
     occupied = sum(seat for row in hall for seat in row)
 
@@ -103,6 +116,8 @@ def show_stats():
         f"Free: {ROWS * SEATS - occupied}"
     )
 
+
+# ===== GUI =====
 root = tk.Tk()
 root.title("🎬 Cinema Booking System")
 root.geometry("600x500")
@@ -115,45 +130,58 @@ frame.pack()
 
 buttons = []
 
+# ===== TOP NUMBERS (Seats) =====
+for j in range(SEATS):
+    tk.Label(frame, text=str(j+1), font=("Arial", 10, "bold")).grid(row=0, column=j+1)
+
+# ===== ROWS + SEATS =====
 for i in range(ROWS):
     row_buttons = []
+
+    # Row label (R1, R2...)
+    tk.Label(frame, text=f"R{i+1}", font=("Arial", 10, "bold")).grid(row=i+1, column=0)
+
     for j in range(SEATS):
         color = "lightgreen" if hall[i][j] == 0 else "red"
 
         btn = tk.Button(
             frame,
-            text=f"{i+1}-{j+1}",
-            width=5,
+            text=str(j+1),  # только номер места
+            width=4,
             height=2,
             bg=color,
             command=lambda r=i, s=j: toggle_seat(r, s)
         )
-        btn.grid(row=i, column=j, padx=3, pady=3)
+        btn.grid(row=i+1, column=j+1, padx=3, pady=3)
         row_buttons.append(btn)
+
     buttons.append(row_buttons)
 
-legend = tk.Label(root, text="🟢 Free   🟡 Selected   🔴 Occupied")
-legend.pack()
+# ===== LEGEND =====
+legend = tk.Label(root, text="🟢 Free   🟡 Selected   🔴 Occupied", font=("Arial", 10))
+legend.pack(pady=5)
 
-info_label = tk.Label(root, text="Selected: 0 | Total: $0.00")
+# ===== INFO =====
+info_label = tk.Label(root, text="Selected: 0 | Total: $0.00", font=("Arial", 12))
 info_label.pack()
 
+# ===== DISCOUNT =====
 discount_var = tk.StringVar(value="None")
 
-frame2 = tk.Frame(root)
-frame2.pack()
+discount_frame = tk.Frame(root)
+discount_frame.pack(pady=5)
+tk.Label(discount_frame, text="Discount: ").pack(side="left")
+tk.Radiobutton(discount_frame, text="None", variable=discount_var, value="None").pack(side="left")
+tk.Radiobutton(discount_frame, text="3=4", variable=discount_var, value="3=4").pack(side="left")
+tk.Radiobutton(discount_frame, text="15%", variable=discount_var, value="15%").pack(side="left")
 
-tk.Label(frame2, text="Discount: ").pack(side="left")
-tk.Radiobutton(frame2, text="None", variable=discount_var, value="None").pack(side="left")
-tk.Radiobutton(frame2, text="3=4", variable=discount_var, value="3=4").pack(side="left")
-tk.Radiobutton(frame2, text="15%", variable=discount_var, value="15%").pack(side="left")
+# ===== BUTTONS =====
+btn_frame = tk.Frame(root)
+btn_frame.pack(pady=10)
 
-btns = tk.Frame(root)
-btns.pack()
-
-tk.Button(btns, text="Book", command=book_seats).pack(side="left")
-tk.Button(btns, text="Reset", command=reset_selection).pack(side="left")
-tk.Button(btns, text="Stats", command=show_stats).pack(side="left")
-tk.Button(btns, text="Exit", command=root.quit).pack(side="left")
+tk.Button(btn_frame, text="Book", width=10, command=book_seats).pack(side="left", padx=5)
+tk.Button(btn_frame, text="Reset", width=10, command=reset_selection).pack(side="left", padx=5)
+tk.Button(btn_frame, text="Cashier", width=10, command=show_stats).pack(side="left", padx=5)
+tk.Button(btn_frame, text="Exit", width=10, command=root.quit).pack(side="left", padx=5)
 
 root.mainloop()
